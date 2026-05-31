@@ -24,6 +24,12 @@ bool TrimEngine::trim(
         return false;
     }
 
+    if (!outputPathLooksLikeFile(outputPath))
+    {
+        std::cout << "Failure: output path must include a file name, like output.mp4.\n";
+        return false;
+    }
+
     double durationSeconds = endSeconds - startSeconds;
 
     std::string command = buildCommand(
@@ -51,6 +57,18 @@ bool TrimEngine::trim(
 bool TrimEngine::inputFileExists(const std::string& inputPath) const
 {
     return std::filesystem::exists(inputPath);
+}
+
+bool TrimEngine::outputPathLooksLikeFile(const std::string& outputPath) const
+{
+    std::filesystem::path path(outputPath);
+
+    if (std::filesystem::is_directory(path))
+    {
+        return false;
+    }
+
+    return path.has_filename() && path.has_extension();
 }
 
 bool TrimEngine::isTimeRangeValid(double startSeconds, double endSeconds) const

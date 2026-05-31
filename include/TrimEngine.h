@@ -16,6 +16,8 @@ public:
 private:
     bool inputFileExists(const std::string& inputPath) const;
 
+    bool outputPathLooksLikeFile(const std::string& outputPath) const;
+
     bool isTimeRangeValid(double startSeconds, double endSeconds) const;
 
     std::string buildCommand(

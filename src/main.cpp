@@ -3,6 +3,24 @@
 #include <iostream>
 #include <string>
 
+std::string removeSurroundingQuotes(const std::string& text)
+{
+    if (text.length() < 2)
+    {
+        return text;
+    }
+
+    bool startsWithQuote = text.front() == '"';
+    bool endsWithQuote = text.back() == '"';
+
+    if (startsWithQuote && endsWithQuote)
+    {
+        return text.substr(1, text.length() - 2);
+    }
+
+    return text;
+}
+
 int main()
 {
     std::string inputPath;
@@ -14,9 +32,11 @@ int main()
 
     std::cout << "Enter input video path: ";
     std::getline(std::cin, inputPath);
+    inputPath = removeSurroundingQuotes(inputPath);
 
     std::cout << "Enter output video path: ";
     std::getline(std::cin, outputPath);
+    outputPath = removeSurroundingQuotes(outputPath);
 
     std::cout << "Enter start time in seconds: ";
     std::cin >> startSeconds;
