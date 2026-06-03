@@ -111,6 +111,8 @@ You can also run the test executable directly:
 .\build\TrimEngineTests.exe
 ```
 
+If `ctest` is not recognized in your terminal, use the direct test executable command above.
+
 ## How The Trim Works
 
 For an input from `10` seconds to `25` seconds, the app generates a command like:
