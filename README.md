@@ -45,17 +45,29 @@ AIVideoEditor/
 |-- src/
 |   |-- main.cpp
 |   `-- TrimEngine.cpp
-`-- tests/
-    `-- TrimEngineTests.cpp
+|-- tests/
+|   `-- TrimEngineTests.cpp
+`-- docs/
+    `-- code-walkthrough/
+        |-- 01-reading-order.md
+        |-- 02-cmake-build-file.md
+        |-- 03-main-entry-point.md
+        |-- 04-trim-engine-header.md
+        |-- 05-trim-engine-implementation.md
+        |-- 06-trim-engine-tests.md
+        `-- 07-project-readme.md
 ```
 
 What each file does:
 
+- `CMakeLists.txt` tells CMake how to build the app and tests.
+- `README.md` explains how to install requirements, build, run, and test the app.
 - `src/main.cpp` shows prompts in the terminal and reads your answers.
 - `include/TrimEngine.h` declares the `TrimEngine` class.
 - `src/TrimEngine.cpp` checks the inputs and builds the FFmpeg command.
 - `tests/TrimEngineTests.cpp` contains small tests for the trimming logic.
-- `CMakeLists.txt` tells CMake how to build the app and tests.
+- `docs/code-walkthrough/` contains detailed file-by-file documentation in a
+  numbered reading order.
 
 ## Build The App
 
@@ -184,15 +196,25 @@ End: 10
 
 ## Beginner Notes
 
-If you are new to this project, read the files in this order:
+If you are new to this project, start with the detailed walkthrough docs:
 
-1. `src/main.cpp`
-2. `include/TrimEngine.h`
-3. `src/TrimEngine.cpp`
-4. `tests/TrimEngineTests.cpp`
+```text
+docs/code-walkthrough/01-reading-order.md
+```
+
+The walkthrough files are numbered in the recommended reading order:
+
+1. `docs/code-walkthrough/01-reading-order.md`
+2. `docs/code-walkthrough/02-cmake-build-file.md`
+3. `docs/code-walkthrough/03-main-entry-point.md`
+4. `docs/code-walkthrough/04-trim-engine-header.md`
+5. `docs/code-walkthrough/05-trim-engine-implementation.md`
+6. `docs/code-walkthrough/06-trim-engine-tests.md`
+7. `docs/code-walkthrough/07-project-readme.md`
 
 This helps you follow the app from the user input, to the class declaration, to
-the trim logic, and finally to the tests.
+the trim logic, and finally to the tests. The walkthrough also explains the
+build file and this README so the whole project has a guided path.
 
 ## Current Scope
 
