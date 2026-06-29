@@ -2,9 +2,9 @@
 
 This file explains `src/main.cpp`.
 
-`src/main.cpp` is where the command-line application starts. It asks the user
-for input, cleans up quoted paths, creates a `TrimEngine`, and returns an exit
-code based on whether trimming worked.
+`src/main.cpp` is where the command-line application starts. It parses the
+terminal arguments, chooses the requested command, calls the matching engine,
+and returns an exit code.
 
 ## File Location
 
@@ -15,214 +15,134 @@ src/main.cpp
 ## Included Headers
 
 ```cpp
+#include "CommandLineParser.h"
+#include "MusicMergeEngine.h"
 #include "TrimEngine.h"
 
 #include <iostream>
 #include <string>
+#include <vector>
 ```
 
-`TrimEngine.h` gives this file access to the `TrimEngine` class.
+The project headers provide the parser and editing engines.
 
-`<iostream>` provides `std::cout`, `std::cin`, and `std::getline`.
+The standard headers are used for:
 
-`<string>` provides `std::string`.
+- `<iostream>`: printing help and error messages.
+- `<string>`: storing paths and command values.
+- `<vector>`: collecting `argv` into an easier-to-use container.
 
-## removeSurroundingQuotes
+## collectArguments
 
 ```cpp
-std::string removeSurroundingQuotes(const std::string& text)
+std::vector<std::string> collectArguments(int argc, char* argv[])
 ```
 
-This helper removes one pair of double quotes if the whole string is wrapped in
-quotes.
+The operating system gives `main` arguments as `argc` and `argv`.
 
-This is useful on Windows because users often paste paths like:
-
-```text
-"C:\Users\You\Videos\my video.mp4"
-```
-
-The function turns that into:
-
-```text
-C:\Users\You\Videos\my video.mp4
-```
-
-### Short Strings Are Returned As-Is
-
-```cpp
-if (text.length() < 2)
-{
-    return text;
-}
-```
-
-If the string has fewer than two characters, it cannot contain both an opening
-quote and a closing quote, so the function returns it unchanged.
-
-### Quote Detection
-
-```cpp
-bool startsWithQuote = text.front() == '"';
-bool endsWithQuote = text.back() == '"';
-```
-
-These lines check the first and last characters.
-
-### Removing The Quotes
-
-```cpp
-if (startsWithQuote && endsWithQuote)
-{
-    return text.substr(1, text.length() - 2);
-}
-```
-
-If both ends have quotes, the function returns the middle part of the string.
-
-For example:
-
-```text
-"video.mp4"
-```
-
-becomes:
-
-```text
-video.mp4
-```
-
-If the string is not wrapped in quotes, it is returned unchanged.
+This helper copies those values into a `std::vector<std::string>` so
+`CommandLineParser` can work with normal C++ strings.
 
 ## main
 
 ```cpp
-int main()
+int main(int argc, char* argv[])
 ```
 
 This is the starting point of the app.
 
-## Variables
+## Parsing The Command
 
 ```cpp
-std::string inputPath;
-std::string outputPath;
-double startSeconds = 0.0;
-double endSeconds = 0.0;
+ParsedCommand command = parseCommandLine(collectArguments(argc, argv));
 ```
 
-The app stores four user-provided values:
+This turns terminal input into a structured command.
 
-- `inputPath`: the video to trim.
-- `outputPath`: where the trimmed video should be saved.
-- `startSeconds`: where the trim should begin.
-- `endSeconds`: where the trim should end.
+For example:
 
-The time values are `double`, so the user can enter decimal values such as
-`2.5`.
+```powershell
+AIVideoEditor trim --input input.mp4 --output clip.mp4 --start 10 --end 25
+```
 
-## Title Message
+becomes a `ParsedCommand` with:
+
+- command type: `Trim`
+- input path: `input.mp4`
+- output path: `clip.mp4`
+- start seconds: `10`
+- end seconds: `25`
+
+## Help Command
 
 ```cpp
-std::cout << "Lossless AI Video Editor - Phase 1\n\n";
-```
-
-This prints the program name and adds a blank line after it.
-
-## Reading Paths
-
-```cpp
-std::cout << "Enter input video path: ";
-std::getline(std::cin, inputPath);
-inputPath = removeSurroundingQuotes(inputPath);
-```
-
-The program uses `std::getline` for paths so paths with spaces can be read
-correctly.
-
-After reading the path, it calls `removeSurroundingQuotes`.
-
-The same pattern is used for the output path:
-
-```cpp
-std::cout << "Enter output video path: ";
-std::getline(std::cin, outputPath);
-outputPath = removeSurroundingQuotes(outputPath);
-```
-
-## Reading Times
-
-```cpp
-std::cout << "Enter start time in seconds: ";
-std::cin >> startSeconds;
-
-std::cout << "Enter end time in seconds: ";
-std::cin >> endSeconds;
-```
-
-The program uses `std::cin >>` to read numeric values.
-
-Example:
-
-```text
-Enter start time in seconds: 10
-Enter end time in seconds: 25
-```
-
-## Creating The Trim Engine
-
-```cpp
-TrimEngine engine;
-```
-
-This creates an object that knows how to validate trim settings, build an
-FFmpeg command, and run it.
-
-## Calling trim
-
-```cpp
-bool success = engine.trim(
-    inputPath,
-    outputPath,
-    startSeconds,
-    endSeconds
-);
-```
-
-This sends the user's values to `TrimEngine::trim`.
-
-`trim` returns:
-
-- `true` if the trim command succeeds.
-- `false` if validation fails or FFmpeg fails.
-
-## Exit Code
-
-```cpp
-if (success)
+if (command.type == CommandType::Help)
 {
+    std::cout << getUsageText();
     return 0;
 }
-
-return 1;
 ```
 
-Command-line programs use exit codes to report success or failure.
+If the user asks for help, the app prints usage text and exits successfully.
 
-- `0` usually means success.
-- Non-zero values usually mean failure.
+## Invalid Commands
 
-So if trimming works, the app exits with `0`. Otherwise, it exits with `1`.
+```cpp
+if (!command.isValid)
+{
+    std::cout << "Error: " << command.errorMessage << "\n\n";
+    std::cout << getUsageText();
+    return 1;
+}
+```
+
+Invalid commands print a clear error, show usage help, and exit with `1`.
+
+This is important for AI control because a calling agent can tell whether a
+command succeeded by checking the exit code.
+
+## Trim Command
+
+```cpp
+if (command.type == CommandType::Trim)
+{
+    TrimEngine engine;
+    bool success = engine.trim(...);
+    return success ? 0 : 1;
+}
+```
+
+The trim command creates a `TrimEngine` and passes it the parsed values.
+
+`TrimEngine` handles validation, FFmpeg command creation, and command
+execution.
+
+## Add-Song Command
+
+```cpp
+if (command.type == CommandType::AddSong)
+{
+    MusicMergeEngine engine;
+    bool success = engine.addBackgroundMusic(...);
+    return success ? 0 : 1;
+}
+```
+
+The add-song command creates a `MusicMergeEngine` and passes it the parsed
+video path, song path, output path, and music volume.
+
+`MusicMergeEngine` handles validation, FFmpeg command creation, and command
+execution.
 
 ## Responsibility Of This File
 
-`src/main.cpp` should stay focused on the command-line experience:
+`src/main.cpp` should stay focused on command dispatch:
 
-- showing prompts
-- reading user input
-- cleaning pasted paths
-- calling the trim engine
-- returning the final process status
+- collect arguments
+- parse the command
+- print help or errors
+- call the correct engine
+- return the final process status
 
-It does not build FFmpeg commands directly. That job belongs to
-`src/TrimEngine.cpp`.
+It does not build FFmpeg commands directly. That job belongs to the engine
+classes.

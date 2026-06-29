@@ -1,62 +1,69 @@
+#include "CommandLineParser.h"
+#include "MusicMergeEngine.h"
 #include "TrimEngine.h"
 
 #include <iostream>
 #include <string>
+#include <vector>
 
-std::string removeSurroundingQuotes(const std::string& text)
+std::vector<std::string> collectArguments(int argc, char* argv[])
 {
-    if (text.length() < 2)
+    std::vector<std::string> arguments;
+
+    for (int index = 0; index < argc; ++index)
     {
-        return text;
+        arguments.push_back(argv[index]);
     }
 
-    bool startsWithQuote = text.front() == '"';
-    bool endsWithQuote = text.back() == '"';
-
-    if (startsWithQuote && endsWithQuote)
-    {
-        return text.substr(1, text.length() - 2);
-    }
-
-    return text;
+    return arguments;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::string inputPath;
-    std::string outputPath;
-    double startSeconds = 0.0;
-    double endSeconds = 0.0;
+    ParsedCommand command = parseCommandLine(collectArguments(argc, argv));
 
-    std::cout << "Lossless AI Video Editor - Phase 1\n\n";
-
-    std::cout << "Enter input video path: ";
-    std::getline(std::cin, inputPath);
-    inputPath = removeSurroundingQuotes(inputPath);
-
-    std::cout << "Enter output video path: ";
-    std::getline(std::cin, outputPath);
-    outputPath = removeSurroundingQuotes(outputPath);
-
-    std::cout << "Enter start time in seconds: ";
-    std::cin >> startSeconds;
-
-    std::cout << "Enter end time in seconds: ";
-    std::cin >> endSeconds;
-
-    TrimEngine engine;
-
-    bool success = engine.trim(
-        inputPath,
-        outputPath,
-        startSeconds,
-        endSeconds
-    );
-
-    if (success)
+    if (command.type == CommandType::Help)
     {
+        std::cout << getUsageText();
         return 0;
     }
 
+    if (!command.isValid)
+    {
+        std::cout << "Error: " << command.errorMessage << "\n\n";
+        std::cout << getUsageText();
+        return 1;
+    }
+
+    if (command.type == CommandType::Trim)
+    {
+        TrimEngine engine;
+
+        bool success = engine.trim(
+            command.inputPath,
+            command.outputPath,
+            command.startSeconds,
+            command.endSeconds
+        );
+
+        return success ? 0 : 1;
+    }
+
+    if (command.type == CommandType::AddSong)
+    {
+        MusicMergeEngine engine;
+
+        bool success = engine.addBackgroundMusic(
+            command.videoPath,
+            command.songPath,
+            command.outputPath,
+            command.musicVolume
+        );
+
+        return success ? 0 : 1;
+    }
+
+    std::cout << "Error: unsupported command.\n\n";
+    std::cout << getUsageText();
     return 1;
 }

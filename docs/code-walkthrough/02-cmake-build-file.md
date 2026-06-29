@@ -3,8 +3,8 @@
 This file explains `CMakeLists.txt`.
 
 `CMakeLists.txt` tells CMake how to configure and build the project. It defines
-the C++ version, the application executable, the test executable, include
-folders, and the test command.
+the C++ version, the application executable, the test executables, include
+folders, and the CTest registrations.
 
 ## File Location
 
@@ -20,7 +20,7 @@ The build file answers these questions:
 - Which programming language is used?
 - Which C++ standard is required?
 - Which source files belong to the main app?
-- Which source files belong to the tests?
+- Which source files belong to each test executable?
 - Where should the compiler look for header files?
 - How should CTest run the tests?
 
@@ -30,8 +30,7 @@ The build file answers these questions:
 cmake_minimum_required(VERSION 3.16)
 ```
 
-This means the project expects CMake version `3.16` or newer. If someone uses
-an older version, CMake may stop during configuration.
+This means the project expects CMake version `3.16` or newer.
 
 ## Project Declaration
 
@@ -41,8 +40,6 @@ project(AIVideoEditor LANGUAGES CXX)
 
 This names the project `AIVideoEditor` and says the project uses C++.
 
-`CXX` is CMake's name for the C++ language.
-
 ## C++ Standard Settings
 
 ```cmake
@@ -51,21 +48,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 ```
 
-These lines require C++17.
-
-- `CMAKE_CXX_STANDARD 17` asks for C++17.
-- `CMAKE_CXX_STANDARD_REQUIRED ON` makes C++17 mandatory.
-- `CMAKE_CXX_EXTENSIONS OFF` asks the compiler to avoid vendor-specific C++
-  extensions where possible.
-
-The project needs C++17 because it uses `std::filesystem` in `TrimEngine.cpp`
-and `TrimEngineTests.cpp`.
+These lines require C++17. The project uses C++17 features such as
+`std::filesystem`.
 
 ## Main Application Executable
 
 ```cmake
 add_executable(AIVideoEditor
     src/main.cpp
+    src/CommandLineParser.cpp
+    src/MusicMergeEngine.cpp
     src/TrimEngine.cpp
 )
 ```
@@ -74,13 +66,10 @@ This creates the main executable named `AIVideoEditor`.
 
 It is built from:
 
-- `src/main.cpp`
-- `src/TrimEngine.cpp`
-
-`src/main.cpp` contains the `main()` function, so it is the starting point of
-the real command-line app.
-
-`src/TrimEngine.cpp` contains the trimming logic used by the app.
+- `src/main.cpp`, the program entry point.
+- `src/CommandLineParser.cpp`, the command parser.
+- `src/MusicMergeEngine.cpp`, the background music engine.
+- `src/TrimEngine.cpp`, the trim engine.
 
 ## Include Directory For The Main App
 
@@ -105,9 +94,6 @@ instead of:
 #include "../include/TrimEngine.h"
 ```
 
-The keyword `PRIVATE` means this include path is only needed while building
-this target.
-
 ## Enable Testing
 
 ```cmake
@@ -116,79 +102,56 @@ enable_testing()
 
 This turns on CTest support for the project.
 
-CTest is CMake's test runner. After building, tests can be run with:
+With the Visual Studio generator, tests can be run with:
 
 ```powershell
-ctest --test-dir build
+ctest --test-dir build -C Debug --output-on-failure
 ```
 
-## Test Executable
+## Test Executables
 
-```cmake
-add_executable(TrimEngineTests
-    tests/TrimEngineTests.cpp
-    src/TrimEngine.cpp
-)
-```
-
-This creates a second executable named `TrimEngineTests`.
-
-It is built from:
-
-- `tests/TrimEngineTests.cpp`
-- `src/TrimEngine.cpp`
-
-The test executable includes `src/TrimEngine.cpp` because the tests call the
-real `TrimEngine` code.
-
-It does not include `src/main.cpp`, because tests need their own `main()`
-function. `tests/TrimEngineTests.cpp` provides that test-specific `main()`.
-
-## Include Directory For Tests
-
-```cmake
-target_include_directories(TrimEngineTests PRIVATE
-    include
-)
-```
-
-This gives the test executable access to `include/TrimEngine.h`.
-
-Without this line, `tests/TrimEngineTests.cpp` might fail to compile when it
-tries to include:
-
-```cpp
-#include "TrimEngine.h"
-```
-
-## Registering The Test With CTest
-
-```cmake
-add_test(NAME TrimEngineTests COMMAND TrimEngineTests)
-```
-
-This registers the `TrimEngineTests` executable as a CTest test.
-
-The test name is:
+The project builds three test executables:
 
 ```text
 TrimEngineTests
+CommandLineParserTests
+MusicMergeEngineTests
 ```
 
-The command CTest runs is:
+Each test executable has its own `main()` function and links only the production
+source file it needs.
+
+For example:
+
+```cmake
+add_executable(CommandLineParserTests
+    tests/CommandLineParserTests.cpp
+    src/CommandLineParser.cpp
+)
+```
+
+This keeps tests focused and avoids linking `src/main.cpp` into test programs.
+
+## Registering Tests With CTest
+
+Each test executable is registered with CTest:
+
+```cmake
+add_test(NAME CommandLineParserTests COMMAND CommandLineParserTests)
+```
+
+CTest can then run all tests together.
+
+## Why There Are Multiple Executables
+
+The project builds separate programs:
 
 ```text
-TrimEngineTests
+AIVideoEditor             -> the real command-line app
+TrimEngineTests           -> trim validation tests
+CommandLineParserTests    -> command parser tests
+MusicMergeEngineTests     -> background music tests
 ```
 
-## Why There Are Two Executables
-
-The project builds two separate programs:
-
-```text
-AIVideoEditor      -> the real command-line app
-TrimEngineTests    -> the test program
-```
-
-This keeps the real app and the tests separate while allowing both to reuse
-`src/TrimEngine.cpp`.
+This keeps the real app and tests separate while allowing both to reuse the
+same production source files.

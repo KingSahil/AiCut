@@ -8,6 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(AIVideoEditor
     src/main.cpp
+    src/CommandLineParser.cpp
+    src/MusicMergeEngine.cpp
     src/TrimEngine.cpp
 )
 
@@ -27,3 +29,25 @@ target_include_directories(TrimEngineTests PRIVATE
 )
 
 add_test(NAME TrimEngineTests COMMAND TrimEngineTests)
+
+add_executable(CommandLineParserTests
+    tests/CommandLineParserTests.cpp
+    src/CommandLineParser.cpp
+)
+
+target_include_directories(CommandLineParserTests PRIVATE
+    include
+)
+
+add_test(NAME CommandLineParserTests COMMAND CommandLineParserTests)
+
+add_executable(MusicMergeEngineTests
+    tests/MusicMergeEngineTests.cpp
+    src/MusicMergeEngine.cpp
+)
+
+target_include_directories(MusicMergeEngineTests PRIVATE
+    include
+)
+
+add_test(NAME MusicMergeEngineTests COMMAND MusicMergeEngineTests)
