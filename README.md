@@ -119,13 +119,13 @@ This creates a new video clip from second `10` to second `25`.
 The app generates an FFmpeg command like:
 
 ```powershell
-ffmpeg -y -ss 10 -i "C:\Videos\original.mp4" -to 15 -c copy "C:\Videos\short-clip.mp4"
+ffmpeg -y -ss 10 -i "C:\Videos\original.mp4" -t 15 -c copy "C:\Videos\short-clip.mp4"
 ```
 
 The important trim pieces are:
 
 - `-ss 10` starts reading at 10 seconds.
-- `-to 15` keeps 15 seconds of output.
+- `-t 15` keeps 15 seconds of output after the seek point.
 - `-c copy` trims without re-encoding.
 
 ## Add Background Music

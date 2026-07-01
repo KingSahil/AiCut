@@ -309,10 +309,10 @@ command << "-i " << quotePath(inputPath) << " ";
 Sets the input file. The path is quoted so spaces in the path work.
 
 ```cpp
-command << "-to " << durationSeconds << " ";
+command << "-t " << durationSeconds << " ";
 ```
 
-Sets the amount of output to keep after seeking.
+Sets how many seconds of output to keep after the seek point.
 
 ```cpp
 command << "-c copy ";
@@ -342,7 +342,7 @@ durationSeconds = 15
 the command becomes:
 
 ```powershell
-ffmpeg -y -ss 10 -i "C:\Videos\original.mp4" -to 15 -c copy "C:\Videos\short.mp4"
+ffmpeg -y -ss 10 -i "C:\Videos\original.mp4" -t 15 -c copy "C:\Videos\short.mp4"
 ```
 
 ## quotePath
