@@ -14,7 +14,7 @@ bool TrimEngine::trim(
 {
     if (!isTimeRangeValid(startSeconds, endSeconds))
     {
-        std::cout << "Failure: end time must be greater than start time.\n";
+        std::cout << "Failure: invalid time range (start=" << startSeconds << ", end=" << endSeconds << "). Times must be non-negative and end > start.\n";
         return false;
     }
 
@@ -73,7 +73,7 @@ bool TrimEngine::outputPathLooksLikeFile(const std::string& outputPath) const
 
 bool TrimEngine::isTimeRangeValid(double startSeconds, double endSeconds) const
 {
-    return endSeconds > startSeconds;
+    return startSeconds >= 0 && endSeconds > startSeconds;
 }
 
 std::string TrimEngine::buildCommand(
@@ -88,7 +88,7 @@ std::string TrimEngine::buildCommand(
     command << "ffmpeg -y ";
     command << "-ss " << startSeconds << " ";
     command << "-i " << quotePath(inputPath) << " ";
-    command << "-to " << durationSeconds << " ";
+    command << "-t " << durationSeconds << " ";
     command << "-c copy ";
     command << quotePath(outputPath);
 
