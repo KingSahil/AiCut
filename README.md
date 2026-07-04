@@ -137,7 +137,7 @@ The important trim pieces are:
 ## Add Background Music
 
 ```powershell
-.\aicut add-song --video "sample\output\dance-trimmed.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4"
+.\aicut add-song --video "sample\input\dance.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4"
 ```
 
 By default, the song is mixed underneath the original video audio at `25%`
@@ -146,7 +146,7 @@ volume.
 You can choose a different music volume:
 
 ```powershell
-.\aicut add-song --video "sample\output\dance-trimmed.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4" --music-volume 0.35
+.\aicut add-song --video "sample\input\dance.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4" --music-volume 0.35
 ```
 
 The app generates an FFmpeg command that:
