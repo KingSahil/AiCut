@@ -19,6 +19,7 @@ Install these before you build the project:
 
 On Windows, you can use Visual Studio Build Tools, Visual Studio Community, or
 another C++ compiler that works with CMake.
+  aicut trim --input "sample\input\dance.mp4" --output "sample\output\dance-trimmed.mp4" --start 10 --end 25
 
 Check that FFmpeg is installed by running:
 
@@ -27,29 +28,34 @@ ffmpeg -version
 ```
 
 If PowerShell says the command is not found, install FFmpeg and add it to your
+ffmpeg -y -ss 10 -i "sample\input\dance.mp4" -t 15 -c copy "sample\output\dance-trimmed.mp4"
 system `PATH`.
 
 ## Project Files
 
 ```text
+  aicut add-song --video "sample\output\dance-trimmed.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4"
 AIVideoEditor/
 |-- CMakeLists.txt
 |-- README.md
 |-- aicut.cmd
 |-- include/
 |   |-- CommandLineParser.h
+  aicut add-song --video "sample\output\dance-trimmed.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4" --music-volume 0.35
 |   |-- MusicMergeEngine.h
 |   `-- TrimEngine.h
 |-- src/
 |   |-- CommandLineParser.cpp
 |   |-- MusicMergeEngine.cpp
 |   |-- TrimEngine.cpp
+sample\output\clip.mp4
 |   `-- main.cpp
 |-- tests/
 |   |-- CommandLineParserTests.cpp
 |   |-- MusicMergeEngineTests.cpp
 |   `-- TrimEngineTests.cpp
 `-- docs/
+sample\output
     `-- code-walkthrough/
 ```
 
@@ -111,7 +117,7 @@ Usage:
 ## Trim A Video
 
 ```powershell
-.\aicut trim --input "C:\Videos\original.mp4" --output "C:\Videos\short-clip.mp4" --start 10 --end 25
+.\aicut trim --input "sample\input\dance.mp4" --output "sample\output\dance-trimmed.mp4" --start 10 --end 25
 ```
 
 This creates a new video clip from second `10` to second `25`.
@@ -119,7 +125,7 @@ This creates a new video clip from second `10` to second `25`.
 The app generates an FFmpeg command like:
 
 ```powershell
-ffmpeg -y -ss 10 -i "C:\Videos\original.mp4" -t 15 -c copy "C:\Videos\short-clip.mp4"
+ffmpeg -y -ss 10 -i "sample\input\dance.mp4" -t 15 -c copy "sample\output\dance-trimmed.mp4"
 ```
 
 The important trim pieces are:
@@ -131,7 +137,7 @@ The important trim pieces are:
 ## Add Background Music
 
 ```powershell
-.\aicut add-song --video "C:\Videos\short-clip.mp4" --song "C:\Music\song.mp3" --output "C:\Videos\final.mp4"
+.\aicut add-song --video "sample\output\dance-trimmed.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4"
 ```
 
 By default, the song is mixed underneath the original video audio at `25%`
@@ -140,7 +146,7 @@ volume.
 You can choose a different music volume:
 
 ```powershell
-.\aicut add-song --video "C:\Videos\short-clip.mp4" --song "C:\Music\song.mp3" --output "C:\Videos\final.mp4" --music-volume 0.35
+.\aicut add-song --video "sample\output\dance-trimmed.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4" --music-volume 0.35
 ```
 
 The app generates an FFmpeg command that:
@@ -191,13 +197,13 @@ Use a full file path for the output, not just a folder.
 Good:
 
 ```text
-C:\Videos\clip.mp4
+sample\output\clip.mp4
 ```
 
 Not enough:
 
 ```text
-C:\Videos
+sample\output
 ```
 
 ### End time must be greater than start time
