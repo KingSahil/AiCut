@@ -1,6 +1,7 @@
 #include "CommandLineParser.h"
 #include "MusicMergeEngine.h"
 #include "TrimEngine.h"
+#include "MergeEngine.h"
 
 #include <iostream>
 #include <string>
@@ -58,6 +59,18 @@ int main(int argc, char* argv[])
             command.songPath,
             command.outputPath,
             command.musicVolume
+        );
+
+        return success ? 0 : 1;
+    }
+
+    if (command.type == CommandType::Merge)
+    {
+        MergeEngine engine;
+
+        bool success = engine.merge(
+            command.inputPaths,
+            command.outputPath
         );
 
         return success ? 0 : 1;

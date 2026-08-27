@@ -111,6 +111,7 @@ Help output:
 Usage:
   AIVideoEditor trim --input <video> --output <video> --start <seconds> --end <seconds>
   AIVideoEditor add-song --video <video> --song <audio> --output <video> [--music-volume <0.0-1.0>]
+  AIVideoEditor merge --inputs <video1,video2,...> --output <video>
   AIVideoEditor --help
 ```
 
@@ -122,55 +123,37 @@ Usage:
 
 This creates a new video clip from second `10` to second `25`.
 
-The app generates an FFmpeg command like:
-
-```powershell
-ffmpeg -y -ss 10 -i "sample\input\dance.mp4" -t 15 -c copy "sample\output\dance-trimmed.mp4"
-```
-
-The important trim pieces are:
-
-- `-ss 10` starts reading at 10 seconds.
-- `-t 15` keeps 15 seconds of output after the seek point.
-- `-c copy` trims without re-encoding.
-
 ## Add Background Music
-
-```powershell
-.\aicut add-song --video "sample\input\dance.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4"
-```
-
-By default, the song is mixed underneath the original video audio at `25%`
-volume.
-
-You can choose a different music volume:
 
 ```powershell
 .\aicut add-song --video "sample\input\dance.mp4" --song "sample\input\edm.mp3" --output "sample\output\dance-with-music.mp4" --music-volume 0.35
 ```
 
-The app generates an FFmpeg command that:
+## Merge / Concatenate Videos
 
-- keeps the original video audio
-- loops the song if it is shorter than the video
-- stops the output at the video duration
-- copies the video stream without re-encoding
-- encodes the final mixed audio as AAC
+```powershell
+.\aicut merge --inputs "sample\output\clip1.mp4,sample\output\clip2.mp4" --output "sample\output\merged.mp4"
+```
+
+## Blinky Desktop UI & Model Context Protocol (MCP) Integration
+
+AiCut can be controlled using **Blinky** as an AI voice/desktop user interface.
+
+- **MCP Server**: `aicut_mcp.py` implements standard JSON-RPC 2.0 stdio Model Context Protocol.
+- **Windows File Explorer Context**: When you have File Explorer open, you can ask Blinky:
+  - *"Trim this video from 10 to 25 seconds"* (automatically detects selected video in Explorer)
+  - *"Add song edm.mp3 to this video with 30% volume"*
+  - *"Merge these selected clips"*
+  - *"Inspect media info"*
+- **MCP Config**: Use `mcp_config.json` to register AiCut with any MCP client.
 
 ## Run The Tests
 
-Build the project first, then run:
-
 ```powershell
-ctest --test-dir build -C Debug --output-on-failure
-```
-
-You can also run the test executables directly:
-
-```powershell
-.\build\Debug\TrimEngineTests.exe
-.\build\Debug\CommandLineParserTests.exe
-.\build\Debug\MusicMergeEngineTests.exe
+.\build\CommandLineParserTests.exe
+.\build\TrimEngineTests.exe
+.\build\MusicMergeEngineTests.exe
+.\build\MergeEngineTests.exe
 ```
 
 ## Common Problems

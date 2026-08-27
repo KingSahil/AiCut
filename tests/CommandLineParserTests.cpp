@@ -168,6 +168,44 @@ int main()
         if (!expect(command.type == CommandType::Help, "--help should have help type")) return 1;
     }
 
+    {
+        std::vector<std::string> arguments = {
+            "AIVideoEditor",
+            "merge",
+            "--inputs",
+            "clip1.mp4,clip2.mp4,clip3.mp4",
+            "--output",
+            "merged.mp4"
+        };
+
+        ParsedCommand command = parseCommandLine(arguments);
+
+        if (!expect(command.isValid, "merge command with --inputs should parse successfully")) return 1;
+        if (!expect(command.type == CommandType::Merge, "merge command should have merge type")) return 1;
+        if (!expect(command.inputPaths.size() == 3, "merge command should parse 3 inputs")) return 1;
+        if (!expect(command.inputPaths[0] == "clip1.mp4", "merge command first input")) return 1;
+        if (!expect(command.outputPath == "merged.mp4", "merge command output path")) return 1;
+    }
+
+    {
+        std::vector<std::string> arguments = {
+            "AIVideoEditor",
+            "merge",
+            "--input1",
+            "clip1.mp4",
+            "--input2",
+            "clip2.mp4",
+            "--output",
+            "merged.mp4"
+        };
+
+        ParsedCommand command = parseCommandLine(arguments);
+
+        if (!expect(command.isValid, "merge command with --input1/2 should parse successfully")) return 1;
+        if (!expect(command.type == CommandType::Merge, "merge command should have merge type")) return 1;
+        if (!expect(command.inputPaths.size() == 2, "merge command should parse 2 inputs")) return 1;
+    }
+
     std::cout << "All CommandLineParser tests passed.\n";
     return 0;
 }

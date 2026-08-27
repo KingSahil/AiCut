@@ -11,6 +11,7 @@ add_executable(AIVideoEditor
     src/CommandLineParser.cpp
     src/MusicMergeEngine.cpp
     src/TrimEngine.cpp
+    src/MergeEngine.cpp
 )
 
 target_include_directories(AIVideoEditor PRIVATE
@@ -51,3 +52,14 @@ target_include_directories(MusicMergeEngineTests PRIVATE
 )
 
 add_test(NAME MusicMergeEngineTests COMMAND MusicMergeEngineTests)
+
+add_executable(MergeEngineTests
+    tests/MergeEngineTests.cpp
+    src/MergeEngine.cpp
+)
+
+target_include_directories(MergeEngineTests PRIVATE
+    include
+)
+
+add_test(NAME MergeEngineTests COMMAND MergeEngineTests)

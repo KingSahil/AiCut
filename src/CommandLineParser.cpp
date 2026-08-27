@@ -15,6 +15,24 @@ namespace
         return endPointer != text.c_str() && *endPointer == '\0';
     }
 
+    std::vector<std::string> splitString(const std::string& text, char delimiter)
+    {
+        std::vector<std::string> tokens;
+        std::stringstream ss(text);
+        std::string token;
+        while (std::getline(ss, token, delimiter))
+        {
+            // Trim whitespace
+            size_t start = token.find_first_not_of(" \t\r\n");
+            size_t end = token.find_last_not_of(" \t\r\n");
+            if (start != std::string::npos && end != std::string::npos)
+            {
+                tokens.push_back(token.substr(start, end - start + 1));
+            }
+        }
+        return tokens;
+    }
+
     bool collectOptions(
         const std::vector<std::string>& arguments,
         std::map<std::string, std::string>& options,
@@ -70,7 +88,14 @@ namespace
     {
         for (const auto& option : options)
         {
-            if (allowedOptions.find(option.first) == allowedOptions.end())
+            // Allow dynamic flags like --input1, --input2, etc. if --input1 is in allowed
+            bool isAllowed = allowedOptions.find(option.first) != allowedOptions.end();
+            if (!isAllowed && option.first.rfind("--input", 0) == 0 && allowedOptions.find("--input1") != allowedOptions.end())
+            {
+                isAllowed = true;
+            }
+
+            if (!isAllowed)
             {
                 errorMessage = "Unknown option " + option.first + ".";
                 return false;
@@ -174,6 +199,52 @@ ParsedCommand parseCommandLine(const std::vector<std::string>& arguments)
         return parsed;
     }
 
+    if (commandName == "merge" || commandName == "concat")
+    {
+        parsed.type = CommandType::Merge;
+
+        if (!rejectUnknownOptions(options, {"--inputs", "--input1", "--input2", "--output"}, parsed.errorMessage))
+        {
+            return parsed;
+        }
+
+        if (!requireOption(options, "--output", parsed.outputPath, parsed.errorMessage)) return parsed;
+
+        // Check if --inputs was used (comma or semicolon separated)
+        auto inputsOption = options.find("--inputs");
+        if (inputsOption != options.end())
+        {
+            char delimiter = inputsOption->second.find(';') != std::string::npos ? ';' : ',';
+            parsed.inputPaths = splitString(inputsOption->second, delimiter);
+        }
+        else
+        {
+            // Check for --input1, --input2, --input3...
+            for (int i = 1; ; ++i)
+            {
+                std::string flag = "--input" + std::to_string(i);
+                auto it = options.find(flag);
+                if (it != options.end())
+                {
+                    parsed.inputPaths.push_back(it->second);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        if (parsed.inputPaths.size() < 2)
+        {
+            parsed.errorMessage = "Merge requires at least 2 input files via --inputs \"file1,file2\" or --input1 and --input2.";
+            return parsed;
+        }
+
+        parsed.isValid = true;
+        return parsed;
+    }
+
     parsed.errorMessage = "Unknown command: " + commandName + ".";
     return parsed;
 }
@@ -185,6 +256,7 @@ std::string getUsageText()
     usage << "Usage:\n";
     usage << "  AIVideoEditor trim --input <video> --output <video> --start <seconds> --end <seconds>\n";
     usage << "  AIVideoEditor add-song --video <video> --song <audio> --output <video> [--music-volume <0.0-1.0>]\n";
+    usage << "  AIVideoEditor merge --inputs <video1,video2,...> --output <video>\n";
     usage << "  AIVideoEditor --help\n";
 
     return usage.str();

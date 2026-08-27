@@ -9,7 +9,8 @@ enum class CommandType
     Invalid,
     Help,
     Trim,
-    AddSong
+    AddSong,
+    Merge
 };
 
 struct ParsedCommand
@@ -19,6 +20,7 @@ struct ParsedCommand
     std::string errorMessage;
 
     std::string inputPath;
+    std::vector<std::string> inputPaths;
     std::string videoPath;
     std::string songPath;
     std::string outputPath;
